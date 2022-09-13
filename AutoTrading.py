@@ -125,7 +125,7 @@ def _buy_stock(infos):
         if current_price >= target_price:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
-            ret = _t_stockinfo.do_buy(str(stock) , buy_qty, target_price)
+            ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
             if ret:
                 msgout('변동성 돌파 매매 성공 -> 주식('+str(stock)+') 매수가격 ('+str(target_price)+')')
                 buy_done_list.append(stock)
@@ -215,7 +215,7 @@ if '__main__' == __name__:
             msg_proc = 'The AlogoTrading process is still alive'
             msg_sellall = '`sell_all() returned True -> self-destructed!`'
             msg_holiday = 'Today is Holiday'
-
+            print('start', t_now)
             # 장이 열리지 않는 날은 Exit
             if holiday in notwork_days:
                 msgout(msg_holiday)
@@ -245,6 +245,7 @@ if '__main__' == __name__:
                     pass
                 else:
                     target_stock_values = _get_buy_stock_info(stock_list)
+                print(target_stock_values)
                 if len(buy_done_list) < target_buy_count:
                     for bstock in target_stock_values:
                         if bstock['stock'] in buy_done_list:
@@ -275,5 +276,6 @@ if '__main__' == __name__:
                 _t_setting.send_slack_msg("#stock",msg_end)
                 sys.exit(0)                
             time.sleep(3)
+            print('end', t_now)
     except Exception as ex:
         msgout('`main -> exception! ' + str(ex) + '`')

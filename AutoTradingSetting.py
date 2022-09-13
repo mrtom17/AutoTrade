@@ -14,11 +14,12 @@ from datetime import datetime
 _TRENV = tuple()
 _last_auth_time = datetime.now()
 _autoReAuth = False
-_DEBUG = True
+_DEBUG = False
 _isPaper = True
+_isLocal = False
 _SVCDIR = '/home/ubuntu/AutoTrade'
 _LCLDIR = '/Users/tom.my/Public/Study/AutoTrade'
-if _DEBUG == True:
+if _isLocal == True:
     SVCDIR = _LCLDIR
 else:
     SVCDIR = _SVCDIR
