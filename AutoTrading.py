@@ -245,7 +245,7 @@ if '__main__' == __name__:
                     pass
                 else:
                     target_stock_values = _get_buy_stock_info(stock_list)
-                print(target_stock_values)
+                # 주식 매수 목표 갯수 보다 작으면 매수 진행
                 if len(buy_done_list) < target_buy_count:
                     for bstock in target_stock_values:
                         if bstock['stock'] in buy_done_list:
@@ -255,11 +255,8 @@ if '__main__' == __name__:
                         else:
                             pass
                         time.sleep(1)
-                if len(buy_done_list) > 0:
-                    sellable_stock =_check_profit()
-                    if len(sellable_stock) > 0:
-                        _sell_each_stock(sellable_stock)
-                if t_now.minute == 30 and 0 <= t_now.second <=10:
+                # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
+                if t_now.minute == 30 and 0 <= t_now.second <=6:
                     _t_setting.send_slack_msg("#stock",msg_proc)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
