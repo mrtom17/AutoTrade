@@ -215,7 +215,6 @@ if '__main__' == __name__:
             msg_proc = 'The AlogoTrading process is still alive'
             msg_sellall = '`sell_all() returned True -> self-destructed!`'
             msg_holiday = 'Today is Holiday'
-            print('start', t_now)
             # 장이 열리지 않는 날은 Exit
             if holiday in notwork_days:
                 msgout(msg_holiday)
@@ -273,6 +272,5 @@ if '__main__' == __name__:
                 _t_setting.send_slack_msg("#stock",msg_end)
                 sys.exit(0)                
             time.sleep(3)
-            print('end', t_now)
     except Exception as ex:
         msgout('`main -> exception! ' + str(ex) + '`')
