@@ -190,13 +190,7 @@ if '__main__' == __name__:
         buy_done_list = []
         target_buy_count = 5
         buy_percent = 0.19
-        total_cash = int(_t_myinfo.get_buyable_cash())
-        buy_amount = total_cash * buy_percent
-        msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
-        msgout('----------------종목별 주문 비율 :'+str(buy_percent))
-        msgout('----------------종목별 주문 금액 :'+str(buy_amount))
         soldout = False
-
         # While 문으로 데몬 생성
         while True:
             # 거래 시간 정의
@@ -212,7 +206,7 @@ if '__main__' == __name__:
             msg_end = '['+str(t_now)+'] Kospi & Kosdaq Closed Process self- destructed'
             msg_week = 'Today is', 'Saturday.' if today == 5 else 'Sunday.'
             msg_resell = '`sell_all() returned True -> 전날 잔여 주식 매도!`'
-            msg_proc = 'The AlogoTrading process is still alive'
+            msg_proc = 'The AutoTrade process is still alive'
             msg_sellall = '`sell_all() returned True -> self-destructed!`'
             msg_holiday = 'Today is Holiday'
             # 장이 열리지 않는 날은 Exit
@@ -232,6 +226,13 @@ if '__main__' == __name__:
                 if _sell_stock() == True:
                     msgout(msg_resell)
                     _t_setting.send_slack_msg("#stock",msg_resell)
+
+                total_cash = int(_t_myinfo.get_buyable_cash())
+                buy_amount = total_cash * buy_percent
+                msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
+                msgout('----------------종목별 주문 비율 :'+str(buy_percent))
+                msgout('----------------종목별 주문 금액 :'+str(buy_amount))
+                
                 if target_stock_values:
                     pass
                 else:
@@ -255,7 +256,7 @@ if '__main__' == __name__:
                             pass
                         time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
-                if t_now.minute == 30 and 0 <= t_now.second <=6:
+                if t_now.minute == 30 and 0 <= t_now.second <=5:
                     _t_setting.send_slack_msg("#stock",msg_proc)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
