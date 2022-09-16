@@ -74,14 +74,38 @@ def _get_buy_stock_info(stock_list):
             _t_price = int(_target_price/aspr_unit)
             target_price = _t_price * aspr_unit            
 
-            _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
+            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'bestk' : bestk}
             stock_output.append(_stock_output)
-            time.sleep(1)
+            time.sleep(0.5)
+        msgout(stock_output)
         return stock_output
-
     except Exception as ex:
         msgout("`get_buy_stock_info() -> exception! " + str(ex) + "`")
-        return None      
+        return None
+# 특정 주식의 Target Price 를 리턴한다        
+def _get_target_stock_info(stock,bestk):
+    try:
+        t_now = datetime.now()
+        str_today = t_now.replace(hour=0, minute=0, second=0, microsecond=0)
+        df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
+
+        if str_today == df.iloc[0].name:
+            today_open = df.iloc[0]['Open']
+            lastday = df.iloc[1]
+            lastday_high = lastday['High']
+            lastday_low = lastday['Low']
+        
+        _target_price = today_open + (lastday_high - lastday_low) * bestk
+
+        stock_data = _t_stockinfo.get_current_price(stock)
+        aspr_unit = int(stock_data['aspr_unit'])
+        _t_price = int(_target_price/aspr_unit)
+        target_price = _t_price * aspr_unit            
+
+        return target_price
+    except Exception as ex:
+        msgout("`get_buy_stock_info() -> exception! " + str(ex) + "`")
+        return None     
 # 초과 수익으로 매도 가능 주식 check
 def _check_profit():
     try:
@@ -106,11 +130,18 @@ def _buy_stock(infos):
 
         stock = infos['stock']
         target_price = infos['target_p']
+        bestk = infos['bestk']
 
         if stock in buy_done_list: 
             return False
 
         current_price = int(_t_stockinfo.get_current_price(stock)['stck_prpr'])
+        b_target_price = _get_target_stock_info(stock, bestk)
+        if target_price == b_target_price:
+            target_price = target_price
+        else:
+            target_price = b_target_price
+            msgout('타깃 가격 변경 : '+ target_price +'-->'+ b_target_price)
         buy_qty = 0
 
         if current_price > 0:
@@ -118,10 +149,8 @@ def _buy_stock(infos):
         if buy_qty < 1:
             return False
 
-        #stock_name, stock_qty = get_mystock_balance(stock)
-
         # 변동성 돌파 매매 전략 실행
-        #print(stock,current_price,target_price)
+        #print(stock,current_price,target_price,b_target_price)
         if current_price >= target_price:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
@@ -233,10 +262,6 @@ if '__main__' == __name__:
                 msgout('----------------종목별 주문 비율 :'+str(buy_percent))
                 msgout('----------------종목별 주문 금액 :'+str(buy_amount))
                 
-                if target_stock_values:
-                    pass
-                else:
-                    target_stock_values = _get_buy_stock_info(stock_list)
             # 변동성 매매 전략으로 주식 매수
             # 09:01 ~ 15:15
             if t_start < t_now < t_sell:
