@@ -141,7 +141,7 @@ def _buy_stock(infos):
             target_price = target_price
         else:
             target_price = b_target_price
-            msgout('타깃 가격 변경 : '+ target_price +'-->'+ b_target_price)
+            msgout('타깃 가격 변경 : '+ str(target_price) +'-->'+ str(b_target_price))
         buy_qty = 0
 
         if current_price > 0:
