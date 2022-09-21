@@ -67,6 +67,9 @@ def _get_buy_stock_info(stock_list):
                 today_open = df.iloc[1]['Close']
             lastday_high = lastday['High']
             lastday_low = lastday['Low']
+            closes = df['Close'].sort_index()
+            _ma5 = closes.rolling(window=5).mean()
+            ma5 = _ma5.iloc[-1]
             _target_price = today_open + (lastday_high - lastday_low) * bestk
 
             stock_data = _t_stockinfo.get_current_price(stock)
@@ -74,10 +77,11 @@ def _get_buy_stock_info(stock_list):
             _t_price = int(_target_price/aspr_unit)
             target_price = _t_price * aspr_unit            
 
-            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'bestk' : bestk}
+            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'bestk' : bestk}
             stock_output.append(_stock_output)
             time.sleep(0.5)
         msgout(stock_output)
+        #print(stock_output)
         return stock_output
     except Exception as ex:
         msgout("`get_buy_stock_info() -> exception! " + str(ex) + "`")
@@ -131,6 +135,7 @@ def _buy_stock(infos):
         stock = infos['stock']
         target_price = infos['target_p']
         bestk = infos['bestk']
+        ma5 = infos['ma5']
 
         if stock in buy_done_list: 
             return False
@@ -151,7 +156,7 @@ def _buy_stock(infos):
 
         # 변동성 돌파 매매 전략 실행
         #print(stock,current_price,target_price,b_target_price)
-        if current_price >= target_price:
+        if current_price > target_price and current_price > ma5:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
             ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
