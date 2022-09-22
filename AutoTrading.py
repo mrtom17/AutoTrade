@@ -69,7 +69,9 @@ def _get_buy_stock_info(stock_list):
             lastday_low = lastday['Low']
             closes = df['Close'].sort_index()
             _ma5 = closes.rolling(window=5).mean()
+            _ma10 = closes.rolling(window=10).mean()
             ma5 = _ma5.iloc[-1]
+            ma10 = _ma10.iloc[-1]
             _target_price = today_open + (lastday_high - lastday_low) * bestk
 
             stock_data = _t_stockinfo.get_current_price(stock)
@@ -77,9 +79,9 @@ def _get_buy_stock_info(stock_list):
             _t_price = int(_target_price/aspr_unit)
             target_price = _t_price * aspr_unit            
 
-            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'bestk' : bestk}
+            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'ma10' : float(ma10)}
             stock_output.append(_stock_output)
-            time.sleep(0.5)
+            time.sleep(1)
         msgout(stock_output)
         #print(stock_output)
         return stock_output
@@ -111,8 +113,7 @@ def _buy_stock(infos):
 
         stock = infos['stock']
         target_price = infos['target_p']
-        bestk = infos['bestk']
-        ma5 = infos['ma5']
+
 
         if stock in buy_done_list: 
             return False
