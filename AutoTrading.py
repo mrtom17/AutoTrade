@@ -195,6 +195,11 @@ if '__main__' == __name__:
         buy_done_list = []
         target_buy_count = 5
         buy_percent = 0.19
+        total_cash = int(_t_myinfo.get_buyable_cash())
+        buy_amount = total_cash * buy_percent
+        msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
+        msgout('----------------종목별 주문 비율 :'+str(buy_percent))
+        msgout('----------------종목별 주문 금액 :'+str(buy_amount))        
         soldout = False
         # While 문으로 데몬 생성
         while True:
@@ -232,12 +237,12 @@ if '__main__' == __name__:
                     msgout(msg_resell)
                     _t_setting.send_slack_msg("#stock",msg_resell)
 
-                total_cash = int(_t_myinfo.get_buyable_cash())
-                buy_amount = total_cash * buy_percent
-                msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
-                msgout('----------------종목별 주문 비율 :'+str(buy_percent))
-                msgout('----------------종목별 주문 금액 :'+str(buy_amount))
-                
+                # 타깃 주식을 가져오지 못한 경우 다시 가져온다
+                if target_stock_values:
+                    pass
+                else:
+                    target_stock_values = _get_buy_stock_info(stock_list)
+
             # 변동성 매매 전략으로 주식 매수
             # 09:01 ~ 15:15
             if t_start < t_now < t_sell:
@@ -257,7 +262,7 @@ if '__main__' == __name__:
                             pass
                         time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
-                if t_now.minute == 30 and 0 <= t_now.second <=5:
+                if t_now.minute == 30 and 0 <= t_now.second <=3:
                     _t_setting.send_slack_msg("#stock",msg_proc)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
