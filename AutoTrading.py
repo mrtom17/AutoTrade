@@ -171,16 +171,25 @@ def _sell_stock():
             total_qty = 0
             for s in stocks:
                 total_qty += s['qty']
+
             if total_qty == 0:
                 return True
+
             for s in stocks:
-                if s['qty'] != 0:
-                    current_price = int(_t_stockinfo.get_current_price(s['code'])['stck_prpr'])
-                    ret = _s_order.do_sell(s['code'], s['qty'], current_price)
-                if ret:
-                    msgout('변동성 돌파 매도 주문 성공 ->('+str(s['code'])+')('+str(current_price)+')')
+                ticker = s['code']
+                company = s['name']
+                q_cnt = s['qty']
+
+                if q_cnt == 0:
+                    continue
                 else:
-                    msgout('변동성 돌파 매도 주문 실패 ->('+str(s['code'])+')')
+                    current_price = int(_t_stockinfo.get_current_price(ticker)['stck_prpr'])
+                    ret = _s_order.do_sell(ticker, q_cnt, current_price)
+                    ret = True
+                    if ret:
+                        msgout('변동성 돌파 매도 주문 성공 ->('+str(company)+')('+str(current_price)+')')
+                    else:
+                        msgout('변동성 돌파 매도 주문 실패 ->('+str(company)+')') 
                 time.sleep(1)
             time.sleep(30)
     except Exception as ex:
