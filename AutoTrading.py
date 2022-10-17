@@ -132,7 +132,7 @@ def _buy_stock(infos):
 
         # 변동성 돌파 매매 전략 실행
         #print(stock,current_price,target_price,b_target_price)
-        if current_price >= target_price:
+        if current_price > target_price:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
             ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
@@ -256,8 +256,7 @@ if '__main__' == __name__:
 
             # 변동성 매매 전략으로 주식 매수
             # 09:01 ~ 15:15
-            if t_exit < t_now:
-            #if t_start < t_now < t_sell:
+            if t_start < t_now < t_sell:
                 # 타깃 주식을 가져오지 못한 경우 다시 가져온다
                 if target_stock_values:
                     pass
@@ -291,7 +290,6 @@ if '__main__' == __name__:
             # 변동성 매매 프로세스 종료
             # 15:20 ~                
             if t_exit < t_now:
-                print(stock_list)
                 msgout(msg_end)
                 _t_setting.send_slack_msg("#stock",msg_end)
                 sys.exit(0)                
