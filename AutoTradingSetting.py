@@ -24,10 +24,15 @@ if _isLocal == True:
 else:
     SVCDIR = _SVCDIR
 _CONF_FILE = SVCDIR + '/config.yaml'
+_TICKER_LIST = SVCDIR + '/cfg/tickerlist.yaml'
 _LOG_DIR = SVCDIR + '/log'
 _LOG_FILE = 'kis_auto_trade.log'
+
 with open(_CONF_FILE, encoding='UTF-8') as f:
     _cfg = yaml.load(f, Loader=yaml.FullLoader)
+    
+with open(_TICKER_LIST, encoding='UTF-8') as f:
+    _cfg2 = yaml.load(f, Loader=yaml.FullLoader)
 _base_headers = {
     "Content-Type": "application/json",
     "Accept": "text/plain",

@@ -67,11 +67,11 @@ def _get_buy_stock_info(stock_list):
                 today_open = df.iloc[1]['Close']
             lastday_high = lastday['High']
             lastday_low = lastday['Low']
-            closes = df['Close'].sort_index()
-            _ma5 = closes.rolling(window=5).mean()
-            _ma10 = closes.rolling(window=10).mean()
-            ma5 = _ma5.iloc[-1]
-            ma10 = _ma10.iloc[-1]
+            #closes = df['Close'].sort_index()
+            #_ma5 = closes.rolling(window=5).mean()
+            #_ma10 = closes.rolling(window=10).mean()
+            #ma5 = _ma5.iloc[-1]
+            #ma10 = _ma10.iloc[-1]
             _target_price = today_open + (lastday_high - lastday_low) * bestk
 
             stock_data = _t_stockinfo.get_current_price(stock)
@@ -79,7 +79,8 @@ def _get_buy_stock_info(stock_list):
             _t_price = int(_target_price/aspr_unit)
             target_price = _t_price * aspr_unit            
 
-            _stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'ma10' : float(ma10)}
+            #_stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'ma10' : float(ma10)}
+            _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
             stock_output.append(_stock_output)
             time.sleep(1)
         msgout(stock_output)
@@ -95,15 +96,18 @@ def _check_profit():
         # 보유한 주식과 예수금을 반환한다.
         mystocklist = _t_myinfo.get_acct_balance()
         stocks= []
-        for i in range(0,len(mystocklist)):
-            stock_code = mystocklist.iloc[i].name
-            stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
-            stock_cur_price = mystocklist.iloc[i]['현재가']
-            profit_percent = mystocklist.iloc[i]['수익율']
-            if profit_percent > 20.1:
-                stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_price': stock_cur_price})
-            time.sleep(1)
-        return stocks
+        if mystocklist:
+            for i in range(0,len(mystocklist)):
+                stock_code = mystocklist.iloc[i].name
+                stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
+                stock_cur_price = mystocklist.iloc[i]['현재가']
+                profit_percent = mystocklist.iloc[i]['수익율']
+                if profit_percent > 20.1 or profit_percent <= -3.0:
+                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
+                #time.sleep(1)
+            return stocks
+        else:
+            return None
     except Exception as ex:
         msgout("_check_profit() -> exception! " + str(ex))
 # 주식 매수 
@@ -147,6 +151,7 @@ def _sell_each_stock(stocks):
         for s in stocks:
             if s['sell_qty'] != 0:
                 current_price_n = int(_t_stockinfo.get_current_price(s['sell_code'])['stck_prpr'])
+                profit_percent = s['sell_percent']
                 current_price_s = s['sell_price']
                 if current_price_n > current_price_s:
                     current_price = current_price_n
@@ -155,11 +160,13 @@ def _sell_each_stock(stocks):
 
                 ret = _s_order.do_sell(s['sell_code'], s['sell_qty'], current_price)
                 if ret:
-                    msgout('변동성 돌파 매도 주문(이익율 4.8% 달성) 성공 ->('+str(s['sell_code'])+')('+str(current_price)+')')
-                    return True
+                    msg = '변동성 돌파 매도 주문(이익율 '+str(profit_percent)+'% 달성) 성공 ->('+str(s['sell_code'])+')('+str(current_price)+')'
+                    msgout(msg)
+                    _t_setting.send_slack_msg("#stock",msg)
                 else:
-                    msgout('변동성 돌파 매도 주문(이익율 4.8% 달성) 실패 ->('+str(s['sell_code'])+')')
-                    return False
+                    msg = '변동성 돌파 매도 주문(이익율 '+str(profit_percent)+'% 달성) 실패 ->('+str(s['sell_code'])+')'
+                    msgout(msg)
+                    _t_setting.send_slack_msg("#stock",msg)
     except Exception as ex:
         msgout("_sell_each_stock() -> exception! " + str(ex))
 # 주식 매도
@@ -199,7 +206,7 @@ def _sell_stock():
 if '__main__' == __name__:
     try:
         _t_setting.auth(svr,product='01')
-        stock_list = _t_setting._cfg['stlist']
+        stock_list = _t_setting._cfg2['stlist']
         notwork_days = _t_setting._cfg['nodaylist']
         target_stock_values = []
         buy_done_list = []
@@ -247,15 +254,10 @@ if '__main__' == __name__:
                     msgout(msg_resell)
                     _t_setting.send_slack_msg("#stock",msg_resell)
 
-                # 타깃 주식을 가져오지 못한 경우 다시 가져온다
-                if target_stock_values:
-                    pass
-                else:
-                    target_stock_values = _get_buy_stock_info(stock_list)
-
             # 변동성 매매 전략으로 주식 매수
             # 09:01 ~ 15:15
-            if t_start < t_now < t_sell:
+            if t_exit < t_now:
+            #if t_start < t_now < t_sell:
                 # 타깃 주식을 가져오지 못한 경우 다시 가져온다
                 if target_stock_values:
                     pass
@@ -272,8 +274,12 @@ if '__main__' == __name__:
                             pass
                         time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
-                if t_now.minute == 30 and 0 <= t_now.second <=3:
-                    _t_setting.send_slack_msg("#stock",msg_proc)
+                if t_now.minute == 30 and 0 <= t_now.second <=10:
+                    sell_stock_list = _check_profit()
+                    if sell_stock_list is None or sell_stock_list == '':
+                        _t_setting.send_slack_msg("#stock",msg_proc)
+                    else:
+                        _sell_each_stock(sell_stock_list)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
             # 15:15 ~ 15:20
@@ -285,6 +291,7 @@ if '__main__' == __name__:
             # 변동성 매매 프로세스 종료
             # 15:20 ~                
             if t_exit < t_now:
+                print(stock_list)
                 msgout(msg_end)
                 _t_setting.send_slack_msg("#stock",msg_end)
                 sys.exit(0)                
