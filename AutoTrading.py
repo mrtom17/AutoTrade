@@ -95,13 +95,15 @@ def _check_profit():
     try:
         # 보유한 주식과 예수금을 반환한다.
         mystocklist = _t_myinfo.get_acct_balance()
+        mystockcnt = int(len(mystocklist))
         stocks= []
-        if mystocklist:
-            for i in range(0,len(mystocklist)):
+        if mystockcnt > 0:
+            for i in range(0,mystockcnt):
                 stock_code = mystocklist.iloc[i].name
                 stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
                 stock_cur_price = mystocklist.iloc[i]['현재가']
                 profit_percent = mystocklist.iloc[i]['수익율']
+                #print(stock_code,stock_psbl_qty,profit_percent,stock_cur_price)
                 if profit_percent > 20.1 or profit_percent <= -3.0:
                     stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
                 #time.sleep(1)
@@ -275,10 +277,10 @@ if '__main__' == __name__:
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=10:
                     sell_stock_list = _check_profit()
-                    if sell_stock_list is None or sell_stock_list == '':
+                    if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
                     else:
-                        _sell_each_stock(sell_stock_list)
+                        _sell_each_stock(sell_sto      ck_list)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
             # 15:15 ~ 15:20
