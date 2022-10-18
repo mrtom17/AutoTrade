@@ -275,7 +275,7 @@ if '__main__' == __name__:
                             pass
                         time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
-                if t_now.minute == 30 and 0 <= t_now.second <=10:
+                if t_now.minute == 30 and 0 <= t_now.second <=3:
                     sell_stock_list = _check_profit()
                     if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
