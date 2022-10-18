@@ -280,7 +280,7 @@ if '__main__' == __name__:
                     if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
                     else:
-                        _sell_each_stock(sell_sto      ck_list)
+                        _sell_each_stock(sell_stock_list)
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
             # 15:15 ~ 15:20
