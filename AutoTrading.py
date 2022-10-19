@@ -212,8 +212,8 @@ if '__main__' == __name__:
         notwork_days = _t_setting._cfg['nodaylist']
         target_stock_values = []
         buy_done_list = []
-        target_buy_count = 5
-        buy_percent = 0.19
+        target_buy_count = _t_setting._cfg['targetbuycount']
+        buy_percent = _t_setting._cfg['buypercent']
         total_cash = int(_t_myinfo.get_buyable_cash())
         buy_amount = total_cash * buy_percent
         msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
