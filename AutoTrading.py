@@ -53,7 +53,6 @@ def _get_mystock_balance(stock):
 def _get_buy_stock_info(stock_list):
     try:
         stock_output = []
-        print(stock_list)
         for std in stock_list:
             stock = std[0]
             bestk = std[1]
@@ -83,7 +82,6 @@ def _get_buy_stock_info(stock_list):
             #_stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'ma10' : float(ma10)}
             _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
             stock_output.append(_stock_output)
-            print(stock_output)
             time.sleep(1)
         msgout(stock_output)
         #print(stock_output)
