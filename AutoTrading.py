@@ -58,20 +58,20 @@ def _get_buy_stock_info(stock_list):
             bestk = std[1]
             t_now = datetime.now()
             str_today = t_now.replace(hour=0, minute=0, second=0, microsecond=0)
+            
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
+
+            #print(stock, str_today, str(df.iloc[0].name))
             if str_today == df.iloc[0].name:
                 today_open = df.iloc[0]['Open']
                 lastday = df.iloc[1]
             else:
-                lastday = df.iloc[0]
-                today_open = df.iloc[1]['Close']
+                #lastday = df.iloc[0]
+                #today_open = df.iloc[1]['Close']
+                continue
             lastday_high = lastday['High']
             lastday_low = lastday['Low']
-            #closes = df['Close'].sort_index()
-            #_ma5 = closes.rolling(window=5).mean()
-            #_ma10 = closes.rolling(window=10).mean()
-            #ma5 = _ma5.iloc[-1]
-            #ma10 = _ma10.iloc[-1]
+
             _target_price = today_open + (lastday_high - lastday_low) * bestk
 
             stock_data = _t_stockinfo.get_current_price(stock)
@@ -79,7 +79,6 @@ def _get_buy_stock_info(stock_list):
             _t_price = int(_target_price/aspr_unit)
             target_price = _t_price * aspr_unit            
 
-            #_stock_output = {'stock' : stock ,'target_p' : int(target_price), 'ma5': float(ma5),'ma10' : float(ma10)}
             _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
             stock_output.append(_stock_output)
             time.sleep(1)
@@ -260,20 +259,23 @@ if '__main__' == __name__:
             # 09:01 ~ 15:15
             if t_start < t_now < t_sell:
                 # 타깃 주식을 가져오지 못한 경우 다시 가져온다
-                if target_stock_values:
+                stocks_cnt = int(len(stock_list))
+                target_cnt = int(len(target_stock_values))
+                if stocks_cnt == target_cnt:
                     pass
                 else:
                     target_stock_values = _get_buy_stock_info(stock_list)
+
                 # 주식 매수 목표 갯수 보다 작으면 매수 진행
-                if len(buy_done_list) < target_buy_count:
-                    for bstock in target_stock_values:
-                        if bstock['stock'] in buy_done_list:
-                            pass
-                        if len(buy_done_list) < target_buy_count:
-                            _buy_stock(bstock)
-                        else:
-                            pass
-                        time.sleep(1)
+                #if len(buy_done_list) < target_buy_count:
+                #    for bstock in target_stock_values:
+                #        if bstock['stock'] in buy_done_list:
+                #            pass
+                #        if len(buy_done_list) < target_buy_count:
+                #            _buy_stock(bstock)
+                #        else:
+                #            pass
+                #        time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     sell_stock_list = _check_profit()
