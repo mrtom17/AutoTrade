@@ -267,15 +267,15 @@ if '__main__' == __name__:
                     target_stock_values = _get_buy_stock_info(stock_list)
 
                 # 주식 매수 목표 갯수 보다 작으면 매수 진행
-                #if len(buy_done_list) < target_buy_count:
-                #    for bstock in target_stock_values:
-                #        if bstock['stock'] in buy_done_list:
-                #            pass
-                #        if len(buy_done_list) < target_buy_count:
-                #            _buy_stock(bstock)
-                #        else:
-                #            pass
-                #        time.sleep(1)
+                if len(buy_done_list) < target_buy_count:
+                    for bstock in target_stock_values:
+                        if bstock['stock'] in buy_done_list:
+                            pass
+                        if len(buy_done_list) < target_buy_count:
+                            _buy_stock(bstock)
+                        else:
+                            pass
+                        time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     sell_stock_list = _check_profit()
