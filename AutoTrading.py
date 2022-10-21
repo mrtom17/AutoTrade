@@ -211,6 +211,7 @@ if '__main__' == __name__:
         notwork_days = _t_setting._cfg['nodaylist']
         target_stock_values = []
         buy_done_list = []
+        non_buy_list = []
         target_buy_count = _t_setting._cfg['targetbuycount']
         buy_percent = _t_setting._cfg['buypercent']
         total_cash = int(_t_myinfo.get_buyable_cash())
@@ -269,8 +270,9 @@ if '__main__' == __name__:
                 # 주식 매수 목표 갯수 보다 작으면 매수 진행
                 if len(buy_done_list) < target_buy_count:
                     for bstock in target_stock_values:
-                        if bstock['stock'] in buy_done_list:
-                            pass
+                        if bstock['stock'] in buy_done_list or bstock['stock'] in non_buy_list:
+                            continue
+
                         if len(buy_done_list) < target_buy_count:
                             _buy_stock(bstock)
                         else:
