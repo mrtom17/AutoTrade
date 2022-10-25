@@ -49,6 +49,18 @@ def _get_mystock_balance(stock):
     else:
         return None , 0
 
+def _get_buyable_currency():
+
+    global buy_percent, total_cash , buy_amount
+
+    _t_setting.auth(svr,product='01')
+    buy_percent = _t_setting._cfg['buypercent']
+    total_cash = int(_t_myinfo.get_buyable_cash())
+    buy_amount = total_cash * buy_percent
+    msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
+    msgout('----------------종목별 주문 비율 :'+str(buy_percent))
+    msgout('----------------종목별 주문 금액 :'+str(buy_amount))   
+
 # 주식 리스트에서 Target Price 를 리턴한다        
 def _get_buy_stock_info(stock_list):
     try:
@@ -213,13 +225,14 @@ if '__main__' == __name__:
         buy_done_list = []
         non_buy_list = []
         target_buy_count = _t_setting._cfg['targetbuycount']
-        buy_percent = _t_setting._cfg['buypercent']
-        total_cash = int(_t_myinfo.get_buyable_cash())
-        buy_amount = total_cash * buy_percent
-        msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
-        msgout('----------------종목별 주문 비율 :'+str(buy_percent))
-        msgout('----------------종목별 주문 금액 :'+str(buy_amount))        
+        buy_percent = 0
+        total_cash = 0
+        #buy_amount = total_cash * buy_percent
+        #msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
+        #msgout('----------------종목별 주문 비율 :'+str(buy_percent))
+        #msgout('----------------종목별 주문 금액 :'+str(buy_amount))        
         soldout = False
+        #time.sleep(10)
         # While 문으로 데몬 생성
         while True:
             # 거래 시간 정의
@@ -259,6 +272,12 @@ if '__main__' == __name__:
             # 변동성 매매 전략으로 주식 매수
             # 09:01 ~ 15:15
             if t_start < t_now < t_sell:
+                # 주식 구매 가능 예수금을 가져온다
+                if total_cash > 0 and buy_percent == _t_setting._cfg['buypercent']:
+                    pass
+                else:
+                    _get_buyable_currency()
+
                 # 타깃 주식을 가져오지 못한 경우 다시 가져온다
                 stocks_cnt = int(len(stock_list))
                 target_cnt = int(len(target_stock_values))
