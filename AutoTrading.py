@@ -224,6 +224,7 @@ if '__main__' == __name__:
         target_stock_values = []
         buy_done_list = []
         non_buy_list = []
+        sell_stock_list = []
         target_buy_count = _t_setting._cfg['targetbuycount']
         buy_percent = 0
         total_cash = 0
@@ -301,10 +302,12 @@ if '__main__' == __name__:
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     if t_now.hour > 12:
                         sell_stock_list = _check_profit()
+
                     if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
                     else:
                         _sell_each_stock(sell_stock_list)
+                    
                     time.sleep(1)
             # 변동성 매매 전략으로 주식 매도
             # 15:15 ~ 15:20
