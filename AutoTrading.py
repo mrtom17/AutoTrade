@@ -115,7 +115,8 @@ def _check_profit():
                 stock_cur_price = mystocklist.iloc[i]['현재가']
                 profit_percent = mystocklist.iloc[i]['수익율']
                 #print(stock_code,stock_psbl_qty,profit_percent,stock_cur_price)
-                if profit_percent > 20.1 or profit_percent <= -3.0:
+                #if profit_percent > 20.1 or profit_percent <= -3.0:
+                if profit_percent > 24.1:
                     stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
                 #time.sleep(1)
             return stocks
