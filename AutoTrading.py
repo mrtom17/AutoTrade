@@ -115,8 +115,8 @@ def _check_profit():
                 stock_cur_price = mystocklist.iloc[i]['현재가']
                 profit_percent = mystocklist.iloc[i]['수익율']
                 #print(stock_code,stock_psbl_qty,profit_percent,stock_cur_price)
-                #if profit_percent > 20.1 or profit_percent <= -3.0:
-                if profit_percent > 24.1:
+                if profit_percent > 20.1 or profit_percent <= -3.0:
+                #if profit_percent > 24.1:
                     stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
                 #time.sleep(1)
             return stocks
@@ -301,8 +301,8 @@ if '__main__' == __name__:
                         time.sleep(1)
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
-                    if t_now.hour > 12:
-                        sell_stock_list = _check_profit()
+                    
+                    sell_stock_list = _check_profit()
 
                     if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
