@@ -73,13 +73,10 @@ def _get_buy_stock_info(stock_list):
             
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
 
-            #print(stock, str_today, str(df.iloc[0].name))
             if str_today == df.iloc[0].name:
                 today_open = df.iloc[0]['Open']
                 lastday = df.iloc[1]
             else:
-                #lastday = df.iloc[0]
-                #today_open = df.iloc[1]['Close']
                 continue
             lastday_high = lastday['High']
             lastday_low = lastday['Low']
@@ -95,7 +92,6 @@ def _get_buy_stock_info(stock_list):
             stock_output.append(_stock_output)
             time.sleep(1)
         msgout(stock_output)
-        #print(stock_output)
         return stock_output
     except Exception as ex:
         msgout("`get_buy_stock_info() -> exception! " + str(ex) + "`")
@@ -114,9 +110,7 @@ def _check_profit():
                 stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
                 stock_cur_price = mystocklist.iloc[i]['현재가']
                 profit_percent = mystocklist.iloc[i]['수익율']
-                #print(stock_code,stock_psbl_qty,profit_percent,stock_cur_price)
                 if profit_percent > 20.1 or profit_percent <= -3.0:
-                #if profit_percent > 24.1:
                     stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
                 #time.sleep(1)
             return stocks
@@ -145,8 +139,7 @@ def _buy_stock(infos):
             return False
 
         # 변동성 돌파 매매 전략 실행
-        #print(stock,current_price,target_price,b_target_price)
-        if current_price > target_price:
+        if current_price >= target_price:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
             ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
@@ -158,6 +151,7 @@ def _buy_stock(infos):
                 msgout('변동성 돌파 매매 실패 -> 주식('+str(stock)+')')
     except Exception as ex:
         msgout("`_buy_stock("+ str(stock) + ") -> exception! " + str(ex) + "`")   
+
 # 초과 수익 달성 주식 장중 매도
 def _sell_each_stock(stocks):
     # 보유한 모든 종목을 당일 종가 혹은 다음날 시작가에 매도 
@@ -183,6 +177,7 @@ def _sell_each_stock(stocks):
                     _t_setting.send_slack_msg("#stock",msg)
     except Exception as ex:
         msgout("_sell_each_stock() -> exception! " + str(ex))
+
 # 주식 매도
 def _sell_stock():
     # 보유한 모든 종목을 당일 종가 혹은 다음날 시작가에 매도 
@@ -228,14 +223,9 @@ if '__main__' == __name__:
         sell_stock_list = []
         target_buy_count = _t_setting._cfg['targetbuycount']
         buy_percent = 0
-        total_cash = 0
-        #buy_amount = total_cash * buy_percent
-        #msgout('----------------100% 증거금 주문 가능 금액 :'+str(total_cash))
-        #msgout('----------------종목별 주문 비율 :'+str(buy_percent))
-        #msgout('----------------종목별 주문 금액 :'+str(buy_amount))        
+        total_cash = 0    
         soldout = False
-        #time.sleep(10)
-        # While 문으로 데몬 생성
+
         while True:
             # 거래 시간 정의
             t_now = datetime.now()
@@ -253,34 +243,36 @@ if '__main__' == __name__:
             msg_proc = 'The AutoTrade process is still alive'
             msg_sellall = '`sell_all() returned True -> self-destructed!`'
             msg_holiday = 'Today is Holiday'
+            
             # 장이 열리지 않는 날은 Exit
             if holiday in notwork_days:
                 msgout(msg_holiday)
                 _t_setting.send_slack_msg("#stock",msg_week)
                 sys.exit(0)
+            
             # 주말 , 주일은 Exit
             if today == 5 or today == 6:
                 msgout(msg_week)
                 _t_setting.send_slack_msg("#stock",msg_week)
                 sys.exit(0)
-            # 장 시작, 전일 판매하지 못한 잔여 주식 현재가에 매도
-            # 09:00 ~ 09:01
-            if t_9 < t_now < t_start and soldout == False:
-                soldout = True
-                if _sell_stock() == True:
-                    msgout(msg_resell)
-                    _t_setting.send_slack_msg("#stock",msg_resell)
 
-            # 변동성 매매 전략으로 주식 매수
-            # 09:01 ~ 15:15
-            if t_start < t_now < t_sell:
+            # 09:00 ~ 15:15 주식 거래 시작
+            if t_9 < t_now < t_sell:
+                # 09:00 ~ 09:01
+                # 장 시작, 전일 판매하지 못한 잔여 주식 현재가에 매도
+                if t_9 < t_now < t_start and soldout == False:
+                    soldout = True
+                    if _sell_stock() == True:
+                        msgout(msg_resell)
+                        _t_setting.send_slack_msg("#stock",msg_resell)
+
                 # 주식 구매 가능 예수금을 가져온다
                 if total_cash > 0 and buy_percent == _t_setting._cfg['buypercent']:
                     pass
                 else:
                     _get_buyable_currency()
 
-                # 타깃 주식을 가져오지 못한 경우 다시 가져온다
+                # 매수할 타깃 주식을 가져온다.
                 stocks_cnt = int(len(stock_list))
                 target_cnt = int(len(target_stock_values))
                 if stocks_cnt == target_cnt:
@@ -299,6 +291,7 @@ if '__main__' == __name__:
                         else:
                             pass
                         time.sleep(1)
+
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     
@@ -310,6 +303,7 @@ if '__main__' == __name__:
                         _sell_each_stock(sell_stock_list)
                     
                     time.sleep(1)
+                    
             # 변동성 매매 전략으로 주식 매도
             # 15:15 ~ 15:20
             if t_sell < t_now < t_exit:
