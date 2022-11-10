@@ -112,7 +112,7 @@ def _check_profit():
                 profit_percent = mystocklist.iloc[i]['수익율']
                 if profit_percent > 20.1 or profit_percent <= -3.0:
                     stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
-                #time.sleep(1)
+
             return stocks
         else:
             return None
@@ -146,7 +146,6 @@ def _buy_stock(infos):
             if ret:
                 msgout('변동성 돌파 매매 성공 -> 주식('+str(stock)+') 매수가격 ('+str(target_price)+')')
                 buy_done_list.append(stock)
-                return True
             else:
                 msgout('변동성 돌파 매매 실패 -> 주식('+str(stock)+')')
     except Exception as ex:
@@ -201,7 +200,6 @@ def _sell_stock():
                 else:
                     current_price = int(_t_stockinfo.get_current_price(ticker)['stck_prpr'])
                     ret = _s_order.do_sell(ticker, q_cnt, current_price)
-                    ret = True
                     if ret:
                         msgout('변동성 돌파 매도 주문 성공 ->('+str(company)+')('+str(current_price)+')')
                     else:
