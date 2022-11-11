@@ -118,6 +118,30 @@ def _check_profit():
             return None
     except Exception as ex:
         msgout("_check_profit() -> exception! " + str(ex))
+
+# 전일 주식 매도 가능 여부 확인
+def _start_sellable_stock():
+    try:
+        # 보유한 주식과 예수금을 반환한다.
+        mystocklist = mystock.get_acct_balance()
+        mystockcnt = int(len(mystocklist))
+        stocks= []
+        if mystockcnt > 0:
+            for i in range(0,mystockcnt):
+                stock_code = mystocklist.iloc[i].name
+                stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
+                stock_cur_price = mystocklist.iloc[i]['현재가']
+                profit_percent = mystocklist.iloc[i]['수익율']
+                if profit_percent >= 3.0:
+                    pass
+                else:
+                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
+            return stocks
+        else:
+            return None
+    except Exception as ex:
+        msgout("_start_sellable_stock() -> exception! " + str(ex))
+
 # 주식 매수 
 def _buy_stock(infos):
     try:
@@ -151,29 +175,31 @@ def _buy_stock(infos):
     except Exception as ex:
         msgout("`_buy_stock("+ str(stock) + ") -> exception! " + str(ex) + "`")   
 
-# 초과 수익 달성 주식 장중 매도
+# 개별 주식 매도
 def _sell_each_stock(stocks):
     # 보유한 모든 종목을 당일 종가 혹은 다음날 시작가에 매도 
     try:
         for s in stocks:
-            if s['sell_qty'] != 0:
-                current_price_n = int(_t_stockinfo.get_current_price(s['sell_code'])['stck_prpr'])
-                profit_percent = s['sell_percent']
-                current_price_s = s['sell_price']
-                if current_price_n > current_price_s:
-                    current_price = current_price_n
+            ticker = s['sell_code']
+            ticker_qty = s['sell_qty']
+            ticker_percent = s['sell_percent']
+            ticker_price_s = s['sell_price']
+            ticker_price_n = int(trinfo.get_current_price(ticker)['stck_prpr'])
+            if ticker_qty != 0:
+                if ticker_price_n > ticker_price_s:
+                    current_price = ticker_price_n
                 else:
-                    current_price = current_price_s
+                    current_price = ticker_price_s
 
-                ret = _s_order.do_sell(s['sell_code'], s['sell_qty'], current_price)
+                ret = atof.do_sell(ticker, ticker_qty, current_price)
                 if ret:
-                    msg = '변동성 돌파 매도 주문(이익율 '+str(profit_percent)+'% 달성) 성공 ->('+str(s['sell_code'])+')('+str(current_price)+')'
+                    msg = '변동성 돌파 매도 주문(이익율 '+str(ticker_percent)+'% 달성) 성공 ->('+str(ticker)+')('+str(current_price)+')'
                     msgout(msg)
-                    _t_setting.send_slack_msg("#stock",msg)
+                    atcm.send_slack_msg("#stock",msg)
                 else:
-                    msg = '변동성 돌파 매도 주문(이익율 '+str(profit_percent)+'% 달성) 실패 ->('+str(s['sell_code'])+')'
+                    msg = '변동성 돌파 매도 주문(이익율 '+str(ticker_percent)+'% 달성) 실패 ->('+str(ticker)+')'
                     msgout(msg)
-                    _t_setting.send_slack_msg("#stock",msg)
+                    atcm.send_slack_msg("#stock",msg)
     except Exception as ex:
         msgout("_sell_each_stock() -> exception! " + str(ex))
 
@@ -260,10 +286,10 @@ if '__main__' == __name__:
                 # 장 시작, 전일 판매하지 못한 잔여 주식 현재가에 매도
                 if t_9 < t_now < t_start and soldout == False:
                     soldout = True
-                    if _sell_stock() == True:
+                    sellable_stocks = _start_sellable_stock()
+                    if _sell_each_stock(sellable_stocks):
                         msgout(msg_resell)
                         _t_setting.send_slack_msg("#stock",msg_resell)
-
                 # 주식 구매 가능 예수금을 가져온다
                 if total_cash > 0 and buy_percent == _t_setting._cfg['buypercent']:
                     pass
@@ -293,7 +319,8 @@ if '__main__' == __name__:
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     
-                    sell_stock_list = _check_profit()
+                    if t_now.hour > 12:
+                        sell_stock_list = _check_profit()
 
                     if sell_stock_list is None or len(sell_stock_list) == 0:
                         _t_setting.send_slack_msg("#stock",msg_proc)
