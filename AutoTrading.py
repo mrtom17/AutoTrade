@@ -123,7 +123,7 @@ def _check_profit():
 def _start_sellable_stock():
     try:
         # 보유한 주식과 예수금을 반환한다.
-        mystocklist = mystock.get_acct_balance()
+        mystocklist = _t_myinfo.get_acct_balance()
         mystockcnt = int(len(mystocklist))
         stocks= []
         if mystockcnt > 0:
@@ -179,27 +179,31 @@ def _buy_stock(infos):
 def _sell_each_stock(stocks):
     # 보유한 모든 종목을 당일 종가 혹은 다음날 시작가에 매도 
     try:
+        if stocks is None or int(len(stocks)) == 0:
+            return False
+
         for s in stocks:
             ticker = s['sell_code']
             ticker_qty = s['sell_qty']
             ticker_percent = s['sell_percent']
             ticker_price_s = s['sell_price']
-            ticker_price_n = int(trinfo.get_current_price(ticker)['stck_prpr'])
+            ticker_price_n = int(_t_stockinfo.get_current_price(ticker)['stck_prpr'])
             if ticker_qty != 0:
                 if ticker_price_n > ticker_price_s:
                     current_price = ticker_price_n
                 else:
                     current_price = ticker_price_s
 
-                ret = atof.do_sell(ticker, ticker_qty, current_price)
+                ret = _s_order.do_sell(ticker, ticker_qty, current_price)
                 if ret:
                     msg = '변동성 돌파 매도 주문(이익율 '+str(ticker_percent)+'% 달성) 성공 ->('+str(ticker)+')('+str(current_price)+')'
                     msgout(msg)
-                    atcm.send_slack_msg("#stock",msg)
+                    _t_setting.send_slack_msg("#stock",msg)
                 else:
                     msg = '변동성 돌파 매도 주문(이익율 '+str(ticker_percent)+'% 달성) 실패 ->('+str(ticker)+')'
                     msgout(msg)
-                    atcm.send_slack_msg("#stock",msg)
+                    _t_setting.send_slack_msg("#stock",msg)
+        return True
     except Exception as ex:
         msgout("_sell_each_stock() -> exception! " + str(ex))
 
@@ -287,7 +291,7 @@ if '__main__' == __name__:
                 if t_9 < t_now < t_start and soldout == False:
                     soldout = True
                     sellable_stocks = _start_sellable_stock()
-                    if _sell_each_stock(sellable_stocks):
+                    if _sell_each_stock(sellable_stocks) == True:
                         msgout(msg_resell)
                         _t_setting.send_slack_msg("#stock",msg_resell)
                 # 주식 구매 가능 예수금을 가져온다
