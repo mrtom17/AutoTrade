@@ -109,16 +109,20 @@ def _check_profit():
         mystocklist = _t_myinfo.get_acct_balance()
         mystockcnt = int(len(mystocklist))
         stocks= []
+        mystock= []
         if mystockcnt > 0:
             for i in range(0,mystockcnt):
                 stock_code = mystocklist.iloc[i].name
                 stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
                 stock_cur_price = mystocklist.iloc[i]['현재가']
                 profit_percent = mystocklist.iloc[i]['수익율']
+                updown_sign = int(_t_stockinfo.get_current_price(stock_code)['prdy_vrss_sign'])
                 if profit_percent > 20.1 or profit_percent <= -3.0:
-                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
-
-            return stocks
+                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price, 'updown_sign': updown_sign})
+                else:
+                    mystock.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price, 'updown_sign': updown_sign})
+            
+            return stocks , mystock
         else:
             return None
     except Exception as ex:
@@ -330,10 +334,17 @@ if '__main__' == __name__:
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
                     
                     if t_now.hour > 12:
-                        sell_stock_list = _check_profit()
+                        #sell_stock_list = _check_profit()
+                        sell_stock_list , my_stock = _check_profit()
 
                     if sell_stock_list is None or len(sell_stock_list) == 0:
-                        _t_setting.send_slack_msg("#stock",msg_proc)
+                        #_t_setting.send_slack_msg("#stock",msg_proc)
+                        for m in my_stock:
+                            ticker = m['sell_code']
+                            price = m['sell_price']
+                            ud_sign = m['updown_sign']
+                            msg = '주식코드 ('+str(ticker)+') 는 현재가 ('+str(price)+') 이고 상승 사인은 ('+str(ud_sign)+')'
+                            _t_setting.send_slack_msg("#stock",msg)
                     else:
                         _sell_each_stock(sell_stock_list)
                     
