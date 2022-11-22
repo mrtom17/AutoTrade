@@ -79,8 +79,11 @@ def _get_buy_stock_info(stock_list):
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
 
             if str_today == df.iloc[0].name:
-                today_open = df.iloc[0]['Open']
-                lastday = df.iloc[1]
+                if df.iloc[0]['Volume'] > 0:
+                    today_open = df.iloc[0]['Open']
+                    lastday = df.iloc[1]
+                else:
+                    continue
             else:
                 continue
             lastday_high = lastday['High']
