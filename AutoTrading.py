@@ -177,7 +177,7 @@ def _buy_stock(infos):
             return False
 
         # 변동성 돌파 매매 전략 실행
-        if current_price >= target_price:
+        if current_price >= target_price and yesterday_sign <= 3:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
             ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
