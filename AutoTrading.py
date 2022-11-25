@@ -79,11 +79,8 @@ def _get_buy_stock_info(stock_list):
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
 
             if str_today == df.iloc[0].name:
-                if df.iloc[0]['Volume'] > 0:
-                    today_open = df.iloc[0]['Open']
-                    lastday = df.iloc[1]
-                else:
-                    continue
+                today_open = df.iloc[0]['Open']
+                lastday = df.iloc[1]
             else:
                 continue
             lastday_high = lastday['High']
@@ -162,7 +159,9 @@ def _buy_stock(infos):
 
         stock = infos['stock']
         target_price = infos['target_p']
-
+        check_now = datetime.now()
+        check_9_0 = check_now.replace(hour=9, minute=0, second=0, microsecond=0)
+        check_9_1 = check_now.replace(hour=9, minute=1, second=0, microsecond=0)
 
         if stock in buy_done_list: 
             return False
@@ -173,14 +172,19 @@ def _buy_stock(infos):
 
         if current_price > 0:
             buy_qty = int(buy_amount // target_price)
+            buy_qty_s = int(buy_amount // current_price)
         if buy_qty < 1:
             return False
 
         # 변동성 돌파 매매 전략 실행
-        if current_price >= target_price and yesterday_sign <= 3:
+        if current_price >= target_price and yesterday_sign < 3:
             msgout('현금주문 가능금액 : '+ str(buy_amount))
             msgout(str(stock) + '는 현재가 ('+str(current_price)+')이고  주문 가격 (' + str(target_price) +') ' + str(buy_qty) + ' EA : meets the buy condition!`')
-            ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
+            if check_9_0 < check_now < check_9_1:
+                ret = _s_order.do_buy(str(stock) , buy_qty_s, current_price)
+            else:
+                ret = _s_order.do_buy(str(stock) , buy_qty, target_price)
+            
             if ret:
                 msgout('변동성 돌파 매매 성공 -> 주식('+str(stock)+') 매수가격 ('+str(target_price)+') 전일 대비 사인 5:하락, 2:상승 ('+str(yesterday_sign)+')')
                 buy_done_list.append(stock)
