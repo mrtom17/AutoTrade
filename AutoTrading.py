@@ -328,6 +328,7 @@ if '__main__' == __name__:
 
                 # 주식 매수 목표 갯수 보다 작으면 매수 진행
                 if len(buy_done_list) < target_buy_count:
+                    msgout(str(buy_done_list))
                     for bstock in target_stock_values:
                         if bstock['stock'] in buy_done_list or bstock['stock'] in non_buy_list:
                             pass
