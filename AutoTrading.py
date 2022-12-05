@@ -332,8 +332,11 @@ if '__main__' == __name__:
                     for bstock in target_stock_values:
                         if bstock['stock'] in buy_done_list or bstock['stock'] in non_buy_list:
                             pass
-                        else:
+
+                        if len(buy_done_list) < target_buy_count:
                             _buy_stock(bstock)
+                        else:
+                            continue
 
                         time.sleep(1)
 
