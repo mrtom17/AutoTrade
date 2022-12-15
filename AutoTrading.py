@@ -138,14 +138,14 @@ def _start_sellable_stock():
                 stock_name = mystocklist.iloc[i]['종목명']
                 stock_psbl_qty = mystocklist.iloc[i]['매도가능수량']
                 stock_cur_price = mystocklist.iloc[i]['현재가']
-                profit_percent = mystocklist.iloc[i]['수익율']
-                updown_percent = mystocklist.iloc[i]['등락율']
+                yesterday_per_price = mystocklist.iloc[i]['전일대비']
+                keep_stock_sign = (yesterday_per_price/stock_cur_price)*100
 
-                if profit_percent >= 2.0:
+                if keep_stock_sign >= 2.0:
                     non_buy_list.append(stock_code)
-                    msgout('_start_sellable_stock --> 전일 주식 매도 중지 '+str(stock_name)+' 등락율('+str(updown_percent)+')')
+                    msgout('_start_sellable_stock --> 전일 주식 매도 중지 '+str(stock_name)+' 등락율('+str(keep_stock_sign)+')')
                 else:
-                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': profit_percent,'sell_price': stock_cur_price})
+                    stocks.append({'sell_code': stock_code, 'sell_qty': stock_psbl_qty,'sell_percent': keep_stock_sign,'sell_price': stock_cur_price})
             return stocks
         else:
             return None
