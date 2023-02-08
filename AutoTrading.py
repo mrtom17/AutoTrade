@@ -77,12 +77,15 @@ def _get_buy_stock_info(stock_list):
             str_today = t_now.replace(hour=0, minute=0, second=0, microsecond=0)
             
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
+            msgout(str(str_today))
+            msgout(df)
 
             if str_today == df.iloc[0].name:
                 today_open = df.iloc[0]['Open']
                 lastday = df.iloc[1]
             else:
                 continue
+
             lastday_high = lastday['High']
             lastday_low = lastday['Low']
 
@@ -337,6 +340,7 @@ if '__main__' == __name__:
 
                         if len(buy_done_list) < target_buy_count:
                             _buy_stock(bstock)
+                            #pass
                         else:
                             continue
 
