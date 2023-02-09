@@ -77,27 +77,30 @@ def _get_buy_stock_info(stock_list):
             str_today = t_now.replace(hour=0, minute=0, second=0, microsecond=0)
             
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
+            _volume = df.iloc[0]['Volume']
             msgout(str(str_today))
             msgout(df)
+            if _volume > 0:
+                if str_today == df.iloc[0].name:
+                    today_open = df.iloc[0]['Open']
+                    lastday = df.iloc[1]
+                else:
+                    continue
 
-            if str_today == df.iloc[0].name:
-                today_open = df.iloc[0]['Open']
-                lastday = df.iloc[1]
+                lastday_high = lastday['High']
+                lastday_low = lastday['Low']
+
+                _target_price = today_open + (lastday_high - lastday_low) * bestk
+
+                stock_data = _t_stockinfo.get_current_price(stock)
+                aspr_unit = int(stock_data['aspr_unit'])
+                _t_price = int(_target_price/aspr_unit)
+                target_price = _t_price * aspr_unit            
+
+                _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
+                stock_output.append(_stock_output)
             else:
                 continue
-
-            lastday_high = lastday['High']
-            lastday_low = lastday['Low']
-
-            _target_price = today_open + (lastday_high - lastday_low) * bestk
-
-            stock_data = _t_stockinfo.get_current_price(stock)
-            aspr_unit = int(stock_data['aspr_unit'])
-            _t_price = int(_target_price/aspr_unit)
-            target_price = _t_price * aspr_unit            
-
-            _stock_output = {'stock' : stock ,'target_p' : int(target_price)}
-            stock_output.append(_stock_output)
             time.sleep(1)
         msgout(stock_output)
         return stock_output
