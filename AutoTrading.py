@@ -77,9 +77,8 @@ def _get_buy_stock_info(stock_list):
             str_today = t_now.replace(hour=0, minute=0, second=0, microsecond=0)
             
             df = _t_stockinfo.get_stock_history_by_ohlcv(stock,adVar=True)
-            _volume = df.iloc[0]['Volume']
-            msgout(str(str_today))
-            msgout(df)
+            _volume = int(df.iloc[0]['Volume'])
+
             if _volume > 0:
                 if str_today == df.iloc[0].name:
                     today_open = df.iloc[0]['Open']
