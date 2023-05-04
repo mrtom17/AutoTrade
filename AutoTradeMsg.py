@@ -78,7 +78,7 @@ async def main():
                 time.sleep(1)
             # 15:20 ~                
             if t_exit < t_now:
-                _t_setting.send_slack_msg("#stock",_my_stock_infos_)
+                _t_setting.send_slack_msg("#stock",str(_my_stock_infos_))
                 sys.exit(0)                
             time.sleep(3)
     except Exception as ex:
