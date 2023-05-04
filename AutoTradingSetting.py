@@ -16,7 +16,7 @@ _last_auth_time = datetime.now()
 _autoReAuth = False
 _DEBUG = False
 _isPaper = True
-_isLocal = True
+_isLocal = False
 _SVCDIR = '/home/ubuntu/AutoTrade'
 _LCLDIR = '/Users/tom.my/Public/Study/AutoTrade'
 if _isLocal == True:
