@@ -15,8 +15,8 @@ _TRENV = tuple()
 _last_auth_time = datetime.now()
 _autoReAuth = False
 _DEBUG = False
-_isPaper = True
-_isLocal = True
+_isPaper = False
+_isLocal = False
 _SVCDIR = '/home/ubuntu/AutoTrade'
 _LCLDIR = '/Users/tom.my/Public/Study/AutoTrade'
 if _isLocal == True:
