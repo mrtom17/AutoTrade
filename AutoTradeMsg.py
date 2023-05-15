@@ -66,7 +66,7 @@ async def main():
             # 주말 , 주일은 Exit
             if today == 5 or today == 6:
                 msg_week = 'Today is', 'Saturday.' if today == 5 else 'Sunday.'
-                _t_setting.send_slack_msg("#stock",'Today is', msg_week)
+                _t_setting.send_slack_msg("#stock", str(msg_week))
                 sys.exit(0)
             # 09:00 ~ 15:15 주식 거래 시작
             if t_9 < t_now < t_sell:
