@@ -15,6 +15,10 @@ def cal_profit():
     tot_buy_cost = 0
     tot_sell_cost = 0
     tot_ticker_cnt = 0
+    res_data = {}
+
+    if len(mystockinfos) == 0 or mystockinfos['매도가능수량'].sum() == 0:
+        return mystockinfos , res_data
 
     for r in mystockinfos.itertuples():
         b_cost = r.매입단가 * r.매도가능수량
@@ -72,10 +76,18 @@ async def main():
             if t_9 < t_now < t_sell:
                 # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                 if t_now.minute == 30 and 0 <= t_now.second <=3:
+                    '''
                     _rate_ = _summary_['tot_rate']
                     if _rate_ >= 10:
                         _msg_ = make_msg(_summary_)
                         _t_setting.send_slack_msg("#stock",_msg_)
+                    '''
+                    if len(_my_stock_infos_) > 0:
+                        _msg_ = make_msg(_summary_)
+                        _t_setting.send_slack_msg("#stock",_msg_)
+                    else:
+                        _t_setting.send_slack_msg("#stock",'주식 구매 목록 필요, koStockForcast.py 실행 요망')
+                        sys.exit(0)
                 time.sleep(1)
             # 15:20 ~                
             if t_exit < t_now:
