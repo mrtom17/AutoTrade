@@ -15,14 +15,18 @@ def cal_profit():
     tot_buy_cost = 0
     tot_sell_cost = 0
     tot_ticker_cnt = 0
+    _b_cost = 0
+    _s_cost = 0
     res_data = {}
 
     if len(mystockinfos) == 0 or mystockinfos['매도가능수량'].sum() == 0:
         return mystockinfos , res_data
 
     for r in mystockinfos.itertuples():
-        b_cost = r.매입단가 * r.매도가능수량
-        s_cost = r.현재가 * r.매도가능수량
+        _b_cost = r.매입단가 * r.매도가능수량
+        b_cost = _b_cost - (_b_cost * 0.014/100) # 매도 수수료 차감
+        _s_cost = r.현재가 * r.매도가능수량
+        s_cost = _s_cost - (_s_cost * 0.10/100) - (_s_cost * 0.15/100) # 거래세/농특세 차감
         cnt = 1
         tot_buy_cost += b_cost
         tot_sell_cost += s_cost
@@ -63,25 +67,17 @@ async def main():
             holiday = datetime.today().strftime('%Y-%m-%d')
             _my_stock_infos_ , _summary_ = cal_profit()
 
-            # 장이 열리지 않는 날은 Exit
-            if holiday in notwork_days:
+            if holiday in notwork_days: # 장이 열리지 않는 날은 Exit
                 _t_setting.send_slack_msg("#stock",'Today is Holiday')
                 sys.exit(0)
-            # 주말 , 주일은 Exit
-            if today == 5 or today == 6:
+            
+            if today == 5 or today == 6:  # 주말 , 주일은 Exit
                 msg_week = 'Today is', 'Saturday.' if today == 5 else 'Sunday.'
                 _t_setting.send_slack_msg("#stock", str(msg_week))
                 sys.exit(0)
-            # 09:00 ~ 15:15 주식 거래 시작
-            if t_9 < t_now < t_sell:
-                # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
-                if t_now.minute == 30 and 0 <= t_now.second <=3:
-                    '''
-                    _rate_ = _summary_['tot_rate']
-                    if _rate_ >= 10:
-                        _msg_ = make_msg(_summary_)
-                        _t_setting.send_slack_msg("#stock",_msg_)
-                    '''
+            
+            if t_9 < t_now < t_sell: # 09:00 ~ 15:15 주식 거래 시작
+                if t_now.minute == 30 and 0 <= t_now.second <=3: # 매시 30분 마다 프로세스 확인 메시지(슬랙)를 보낸다
                     if len(_my_stock_infos_) > 0:
                         _msg_ = make_msg(_summary_)
                         _t_setting.send_slack_msg("#stock",_msg_)
@@ -89,8 +85,8 @@ async def main():
                         _t_setting.send_slack_msg("#stock",'주식 구매 목록 필요, koStockForcast.py 실행 요망')
                         sys.exit(0)
                 time.sleep(1)
-            # 15:20 ~                
-            if t_exit < t_now:
+                           
+            if t_exit < t_now:  # 15:20 ~
                 _t_setting.send_slack_msg("#stock",str(_my_stock_infos_))
                 sys.exit(0)                
             time.sleep(3)
