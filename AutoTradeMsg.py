@@ -24,9 +24,9 @@ def cal_profit():
 
     for r in mystockinfos.itertuples():
         _b_cost = r.매입단가 * r.매도가능수량
-        b_cost = _b_cost - (_b_cost * 0.014/100) # 매도 수수료 차감
+        b_cost = _b_cost  #- (_b_cost * 0.0140527/100) # 매도 수수료 차감
         _s_cost = r.현재가 * r.매도가능수량
-        s_cost = _s_cost - (_s_cost * 0.10/100) - (_s_cost * 0.15/100) # 거래세/농특세 차감
+        s_cost = _s_cost - (_s_cost * 0.0140527/100) - (_s_cost * 0.05/100) - (_s_cost * 0.15/100) # 거래세/농특세 차감
         cnt = 1
         tot_buy_cost += b_cost
         tot_sell_cost += s_cost
